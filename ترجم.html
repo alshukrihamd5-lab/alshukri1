@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>قاموسي الذكي</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  text-align: center;
+  color: #333;
+}
+
+.container {
+  background: white;
+  width: 400px;
+  margin: 40px auto;
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+  animation: fadeIn 1s ease;
+}
+
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(20px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
+input {
+  width: 90%;
+  padding: 10px;
+  margin: 6px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+button {
+  padding: 10px 15px;
+  margin: 5px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  color: white;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+.save {background: #28a745;}
+.show {background: #007bff;}
+.quiz {background: #ff9800;}
+
+ul {
+  list-style: none;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+li {
+  background: #f1f1f1;
+  margin: 5px;
+  padding: 10px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.delete {
+  background: red;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+  <h2>📘 قاموسي الذكي</h2>
+
+  <input id="word" placeholder="الكلمة">
+  <input id="meaning" placeholder="الترجمة">
+  <input id="search" placeholder="🔍 بحث..." onkeyup="searchWords()">
+
+  <br>
+  <button class="save" onclick="saveWord()">حفظ</button>
+  <button class="show" onclick="showWords()">عرض</button>
+  <button class="quiz" onclick="startQuiz()">اختبار</button>
+
+  <ul id="list"></ul>
+
+  <h3 id="quizBox"></h3>
+</div>
+
+<script>
+function getWords() {
+  return JSON.parse(localStorage.getItem("words") || "[]");
+}
+
+function saveWord() {
+  let word = document.getElementById("word").value;
+  let meaning = document.getElementById("meaning").value;
+
+  if (!word || !meaning) {
+    alert("اكتب الكلمة والترجمة");
+    return;
+  }
+
+  let words = getWords();
+  let date = new Date().toLocaleDateString();
+
+  words.push({word, meaning, date});
+  localStorage.setItem("words", JSON.stringify(words));
+
+  document.getElementById("word").value = "";
+  document.getElementById("meaning").value = "";
+
+  showWords();
+}
+
+function showWords(filtered = null) {
+  let words = filtered || getWords();
+  let list = document.getElementById("list");
+  list.innerHTML = "";
+
+  words.forEach((w, index) => {
+    list.innerHTML += `
+      <li>
+        <div>
+          <b>${w.word}</b> - ${w.meaning}<br>
+          <small>${w.date}</small>
+        </div>
+        <button class="delete" onclick="deleteWord(${index})">حذف</button>
+      </li>
+    `;
+  });
+}
+
+function deleteWord(index) {
+  let words = getWords();
+  words.splice(index, 1);
+  localStorage.setItem("words", JSON.stringify(words));
+  showWords();
+}
+
+function searchWords() {
+  let query = document.getElementById("search").value.toLowerCase();
+  let words = getWords();
+
+  let filtered = words.filter(w =>
+    w.word.toLowerCase().includes(query) ||
+    w.meaning.toLowerCase().includes(query)
+  );
+
+  showWords(filtered);
+}
+
+function startQuiz() {
+  let words = getWords();
+  if (words.length === 0) return;
+
+  let random = words[Math.floor(Math.random() * words.length)];
+
+  let answer = prompt("ما ترجمة: " + random.word);
+
+  if (answer === random.meaning) {
+    document.getElementById("quizBox").innerText = "✅ صح!";
+  } else {
+    document.getElementById("quizBox").innerText =
+      "❌ خطأ! الجواب: " + random.meaning;
+  }
+}
+</script>
+
+</body>
+</html>
